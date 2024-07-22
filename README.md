@@ -1,0 +1,2 @@
+# wsnavigator.nvim
+Workspace navigator
