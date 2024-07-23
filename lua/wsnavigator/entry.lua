@@ -1,9 +1,9 @@
 local config = require('wsnavigator').get_config()
 
-vim.api.nvim_set_hl(0, 'WsNavigatorRedText',        { fg = '#e06c75' })
-vim.api.nvim_set_hl(0, 'WsNavigatorGreenText',      { fg = '#98c379' })
-vim.api.nvim_set_hl(0, 'WsNavigatorBlueText',       { fg = '#61afef' })
-vim.api.nvim_set_hl(0, 'WsNavigatorGreyText',       { fg = '#808080' })
+vim.api.nvim_set_hl(0, 'WsNavigatorRedText', { fg = '#e06c75' })
+vim.api.nvim_set_hl(0, 'WsNavigatorGreenText', { fg = '#98c379' })
+vim.api.nvim_set_hl(0, 'WsNavigatorBlueText', { fg = '#61afef' })
+vim.api.nvim_set_hl(0, 'WsNavigatorGreyText', { fg = '#808080' })
 
 local key1_list = nil
 local key2_list = nil
@@ -96,12 +96,24 @@ local function is_excluded(bufnr)
   return is_ex
 end
 
-local function get_my_jumplist(buf_list)
-  local jumplist = vim.fn.getjumplist()[1]
+local function get_my_jumplist(buf_list, buf_set)
+  local is_buf_only = config.jumplist.buf_only
+
+  local dst_jumplist = {}
   local jumplist_set = {}
+
+  local jumplist = vim.fn.getjumplist()[1]
   local cur_buf_pos
   for i, jump in ipairs(jumplist) do
-    jumplist_set[jump.bufnr] = true
+    if is_buf_only then
+      if buf_set[jump.bufnr] then
+        table.insert(dst_jumplist, jump)
+        jumplist_set[jump.bufnr] = true
+      end
+    else
+      table.insert(dst_jumplist, jump)
+      jumplist_set[jump.bufnr] = true
+    end
 
     if jump.bufnr == vim.api.nvim_get_current_buf() then
       cur_buf_pos = i
@@ -111,21 +123,21 @@ local function get_my_jumplist(buf_list)
   local buf_jumplist = {}
   for _, bufnr in ipairs(buf_list) do
     if not jumplist_set[bufnr] then
-      local jump = {bufnr = bufnr}
+      local jump = { bufnr = bufnr }
       local bufinfo = vim.fn.getbufinfo(bufnr)[1]
       jump.filename = bufinfo.name
       table.insert(buf_jumplist, jump)
     end
   end
-  jumplist = vim.fn.extend(jumplist, buf_jumplist)
+  dst_jumplist = vim.fn.extend(dst_jumplist, buf_jumplist)
 
   if cur_buf_pos then
-    local jump = jumplist[cur_buf_pos]
-    --table.remove(jumplist, cur_buf_pos)
-    table.insert(jumplist, jump)
+    local jump = dst_jumplist[cur_buf_pos]
+    --table.remove(dst_jumplist, cur_buf_pos)
+    table.insert(dst_jumplist, jump)
   end
 
-  return jumplist
+  return dst_jumplist
 end
 
 local function get_buf_list()
@@ -160,7 +172,6 @@ local function get_keylist(n)
 end
 
 local function make_jumplist_entries(jumplist, key_list, idx, buf_set)
-
   local entries = {}
   local jumplist_buf_set = {}
   for i = #jumplist, 1, -1 do
@@ -201,7 +212,7 @@ local function make_entries()
     buf_set[bufnr] = true
   end
 
-  local jumplist = get_my_jumplist(buf_list)
+  local jumplist = get_my_jumplist(buf_list, buf_set)
   local key_list = get_keylist(#jumplist)
 
   local idx = 1

@@ -12,6 +12,9 @@ local config = {
     },
   },
   max_len_of_entries = 20, -- max length of entries
+  jumplist = {
+    buf_only = false
+  }
 }
 
 local function setup(user_options)

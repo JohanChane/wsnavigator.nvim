@@ -42,6 +42,9 @@
         },
       },
       max_len_of_entries = 20,    -- max length of entries
+      jumplist = {
+        buf_only = false          -- show buffer only
+      }
     }
 
     vim.keymap.set('n', 'tt', function()
