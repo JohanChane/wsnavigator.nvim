@@ -1,6 +1,8 @@
 local Window = {}
 Window.__index = Window
 
+local Flag = require('wsnavigator.utils').Flag
+
 local function set_keymaps(buf_hdr, keymaps)
   for _, km in ipairs(keymaps) do
     if km.key and km.key ~= '' then
@@ -126,12 +128,14 @@ function Window:new(_opts)
   end
 
   local function _select_entry(entry)
-    if entry.buf_type == _entry_m.EntryBufType.BufInList then
+    if Flag.has_flag(entry.buf_mode, _entry_m.BufMode.CurBuf) then
+    elseif Flag.has_flag(entry.buf_mode, _entry_m.BufMode.InBufList) then
       vim.api.nvim_set_current_buf(entry.bufnr)
-    elseif entry.buf_type == _entry_m.EntryBufType.BufNotInList then
-      vim.cmd.edit(vim.api.nvim_buf_get_name(entry.bufnr))
     else
-      vim.api.nvim_set_current_buf(entry.bufnr)
+      vim.cmd.edit(vim.api.nvim_buf_get_name(entry.bufnr))
+      if entry.lnum then
+        vim.api.nvim_win_set_cursor(0, { entry.lnum, entry.col or 0 })
+      end
     end
   end
 

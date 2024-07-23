@@ -1,4 +1,5 @@
 local config = require('wsnavigator').get_config()
+local Flag = require('wsnavigator.utils').Flag
 
 vim.api.nvim_set_hl(0, 'WsNavigatorRedText', { fg = '#e06c75' })
 vim.api.nvim_set_hl(0, 'WsNavigatorGreenText', { fg = '#98c379' })
@@ -12,10 +13,9 @@ local EntryType = {
   JumpList = 'JumpList',
 }
 
-local EntryBufType = {
-  BufInList = {},
-  BufNotInList = {},
-  CurBuf = {},
+local BufMode = {
+  InBufList = 1,  -- 01
+  CurBuf = 2      -- 10
 }
 
 -- Define a weight table representing the typing difficulty of each key
@@ -132,8 +132,7 @@ local function get_my_jumplist(buf_list, buf_set)
   dst_jumplist = vim.fn.extend(dst_jumplist, buf_jumplist)
 
   if cur_buf_pos then
-    local jump = dst_jumplist[cur_buf_pos]
-    --table.remove(dst_jumplist, cur_buf_pos)
+    local jump = jumplist[cur_buf_pos]
     table.insert(dst_jumplist, jump)
   end
 
@@ -184,16 +183,17 @@ local function make_jumplist_entries(jumplist, key_list, idx, buf_set)
       entry.key = key_list[idx]
       entry.bufnr = jump.bufnr
       entry.lnum = jump.lnum
+      entry.col = jump.col
 
-      local buf_type
+      local buf_mode = 0
       if jump.bufnr == vim.api.nvim_get_current_buf() then
-        buf_type = EntryBufType.CurBuf
+        buf_mode = Flag.add_flag(buf_mode, BufMode.CurBuf)
+        buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
       elseif buf_set[jump.bufnr] then
-        buf_type = EntryBufType.BufInList
+        buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
       else
-        buf_type = EntryBufType.BufNotInList
       end
-      entry.buf_type = buf_type
+      entry.buf_mode = buf_mode
       table.insert(entries, entry)
 
       idx = idx + 1
@@ -236,9 +236,9 @@ local function make_lines_for_jl_entries(jl_entries)
       filename = '[No Name]'
     end
     local filename_hl = ''
-    if entry.buf_type == EntryBufType.BufNotInList then
+    if not Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
       filename_hl = 'WsNavigatorGreyText'
-    elseif entry.buf_type == EntryBufType.CurBuf then
+    elseif Flag.has_flag(entry.buf_mode, BufMode.CurBuf) then
       filename_hl = 'WsNavigatorGreenText'
     end
 
@@ -259,7 +259,7 @@ local function make_lines_for_jl_entries(jl_entries)
     end
     table.insert(line, { entry.key or '', key_hl })
     table.insert(line, { ' ' })
-    table.insert(line, { tostring(entry.lnum or 1), filename_hl })
+    table.insert(line, { tostring(entry.lnum or 0), filename_hl })
 
     table.insert(lines, line)
   end
@@ -278,5 +278,5 @@ return {
   make_entries = make_entries,
   make_lines_for_entries = make_lines_for_entries,
   EntryType = EntryType,
-  EntryBufType = EntryBufType,
+  BufMode = BufMode,
 }
