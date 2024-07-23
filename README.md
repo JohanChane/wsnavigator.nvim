@@ -1,5 +1,7 @@
 # wsnavigator.nvim
 
+![wsnavigator](https://github.com/user-attachments/assets/03cf4f92-090f-49bc-ab7f-0929d97c32a5)
+
 ## Why wsnavigator.nvim
 
 -   When I use neovim, I usually open multiple files. Although some plugins can filter and select buffers, switching to the buffer I want is not fast enough. Buffers are not well sorted, and there is not enough relevant information about them.
