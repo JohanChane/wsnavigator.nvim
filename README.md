@@ -2,10 +2,15 @@
 
 ![wsnavigator](https://github.com/user-attachments/assets/03cf4f92-090f-49bc-ab7f-0929d97c32a5)
 
-## Why wsnavigator.nvim
+## Why I Created wsnavigator.nvim
 
--   When I use neovim, I usually open multiple files. Although some plugins can filter and select buffers, switching to the buffer I want is not fast enough. Buffers are not well sorted, and there is not enough relevant information about them.
--   When I want to record the position of a function, neovim's `mark` feature is not very convenient. I cannot filter out the marks that record functions. I want to implement the features I need in this plugin.
+I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, to switch my buffers. They are very powerful, but in most cases, I only have 5-10 files open. For this, I have to go through the steps of "open" -> "filter" -> "select". I feel that when there are fewer buffers, it should only take "open" -> "select". Having fewer buffers is a common situation, and switching buffers is a frequent operation. Therefore, I found it necessary to write a plugin to support this situation. I then searched for some quick selection plugins, such as harpoon, but they did not meet my needs. So, I wrote this plugin based on my needs.
+
+## Features
+
+- Use only `fdsajkl` keys for selection.
+- List buffers in the order of the jumplist.
+- Different categories (listed, in jumplist, etc.) of buffers are displayed in different colors, along with relevant buffer information (currently only displaying the current line number).
 
 ## Installation
 
@@ -54,8 +59,9 @@
 },
 ```
 
-## ToDo
+## TODOs
 
+-   [ ] Display buffers according to the file tree. See [ref](https://www.reddit.com/r/neovim/comments/1e9vibn/use_neotree_to_quick_switch_buffers_and_manage/). If it's not too complex, I will try to implement it.
 -   [ ] Display the current line's function in the buffer, format `filename key function:offset:lnum`
 -   [ ] `SaveProject`: Record `project_name:path`
 -   [ ] `SaveMark`: Record `filename key function:offset:lnum` for each project.
