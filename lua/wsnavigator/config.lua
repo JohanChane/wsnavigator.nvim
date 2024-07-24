@@ -11,10 +11,16 @@ local default_opts = {
       y = 0.5
     },
   },
-  max_len_of_entries = 20, -- max length of entries.
+  max_len_of_entries = 20,   -- max length of entries.
+  display_mode = 'filetree', -- filetree | list
   jumplist = {
-    buf_only = false
-  }
+    buf_only = false         -- show buf_only
+  },
+  filetree = {
+    theme = nil, -- user theme
+    theme_name = 'classic',
+  },
+  debug = false,
 }
 
 local setup_opts = {}

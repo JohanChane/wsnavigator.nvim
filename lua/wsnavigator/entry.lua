@@ -1,6 +1,8 @@
 local setup_opts = require('wsnavigator.config').setup_opts
 local Flag = require('wsnavigator.utils').Flag
 local wsn_keylist = require('wsnavigator.keylist')
+local FileTree = require('wsnavigator.filetree').FileTree
+local wsn_filetree = FileTree:new({theme = require('wsnavigator').get_ft_theme()})
 
 local key1_list
 local key2_list
@@ -49,9 +51,16 @@ local function get_key(keylist)
 end
 
 -- Check if a buffer should be excluded from the buffer line
-local function is_excluded(bufnr)
-  local is_ex = vim.fn.buflisted(bufnr) == 0
-      or vim.fn.getbufvar(bufnr, '&filetype') == 'qf' -- quickfix
+local function is_excluded(bufnr, for_jumplist)
+  local is_ex = false
+
+  if for_jumplist then
+    is_ex = is_ex or not vim.api.nvim_buf_is_valid(bufnr)
+  else
+    is_ex = is_ex or vim.fn.buflisted(bufnr) == 0
+  end
+
+  is_ex = is_ex or vim.fn.getbufvar(bufnr, '&filetype') == 'qf' -- quickfix
       or vim.fn.getbufvar(bufnr, '&buftype') == 'terminal'
   return is_ex
 end
@@ -83,10 +92,12 @@ local function get_buflist_from_jl()
 
     local jump = jumplist[i]
 
-    if not dst_bufmap[jump.bufnr] then
-      table.insert(dst_buflist, jump.bufnr)
-      dst_bufmap[jump.bufnr] = {}
-      dst_bufmap[jump.bufnr].jump = jump
+    if not is_excluded(jump.bufnr, true) then
+      if not dst_bufmap[jump.bufnr] then
+        table.insert(dst_buflist, jump.bufnr)
+        dst_bufmap[jump.bufnr] = {}
+        dst_bufmap[jump.bufnr].jump = jump
+      end
     end
   end
 
@@ -95,6 +106,7 @@ end
 
 -- make wsnavigator buflist
 local function make_wsn_buflist(jl_buflist, incl_buflist)
+
   local buflist_in_bl = {} -- buffers in included buflist
   local buflist_ex_bl = {} -- buffers not in included buflist
   for _, bufnr in ipairs(jl_buflist.list) do
@@ -112,13 +124,18 @@ local function make_wsn_buflist(jl_buflist, incl_buflist)
     end
   end
 
+  -- move cur bufnr to first
+  local cur_bufnr_idx = vim.fn.index(buflist_in_bl, vim.api.nvim_get_current_buf())
+  table.remove(buflist_in_bl, cur_bufnr_idx + 1)
+  table.insert(buflist_in_bl, 1, vim.api.nvim_get_current_buf())
+
   return { buflist_in_bl, buflist_ex_jl, buflist_ex_bl }
 end
 
+-- entry = {key(make it outside), bufnr, lnum, col, buf_mode}
 local function make_jumplist_entries(jl_buflist, incl_buflist)
   local wsn_buflist = make_wsn_buflist(jl_buflist, incl_buflist)
   local dst_buflist = {}
-  dst_buflist = vim.fn.extend(dst_buflist, { vim.api.nvim_get_current_buf() })
   dst_buflist = vim.fn.extend(dst_buflist, wsn_buflist[1])
   dst_buflist = vim.fn.extend(dst_buflist, wsn_buflist[2])
   if not setup_opts.jumplist.buf_only then
@@ -193,11 +210,11 @@ local function make_entries()
 end
 
 -- make lines for jumplist entries
+-- lines = {{field1, hl}, {field2, hl}, ...}
 local function make_lines_for_jl_entries(jl_entries)
   local lines = {}
   for _, entry in ipairs(jl_entries) do
-    local key_hl = 'WsNavigatorRedText'
-
+    -- ## filename field
     local bufname = vim.fn.bufname(entry.bufnr)
     local filename
     if bufname ~= '' then
@@ -216,6 +233,7 @@ local function make_lines_for_jl_entries(jl_entries)
       filename_hl = 'WsNavigatorDarkCyanText'
     end
 
+    -- ## modified field
     local is_modified = vim.fn.getbufinfo(entry.bufnr)[1].changed == 1 and true or false
     local is_modified_str = ''
     local is_modified_hl = ''
@@ -224,16 +242,117 @@ local function make_lines_for_jl_entries(jl_entries)
       is_modified_hl = 'WsNavigatorBlueText'
     end
 
+    -- ## key field
+    local key_hl = 'WsNavigatorRedText'
+    local key_str = entry.key or ''
+
+    -- ## line number field
+    local lnum_str = tostring(entry.lnum or 0)
+    local lnum_hl = filename_hl
+
+    -- ## concatenate fields
     local line = {}
+    -- ### filename
     table.insert(line, { filename, filename_hl })
+
+    -- ### modified
     table.insert(line, { ' ' })
     if is_modified then
       table.insert(line, { is_modified_str, is_modified_hl })
       table.insert(line, { ' ' })
     end
-    table.insert(line, { entry.key or '', key_hl })
+
+    -- ### key
+    table.insert(line, { key_str, key_hl })
     table.insert(line, { ' ' })
-    table.insert(line, { tostring(entry.lnum or 0), filename_hl })
+
+    -- ### line number
+    table.insert(line, { lnum_str, lnum_hl })
+
+    table.insert(lines, line)
+  end
+
+  return lines
+end
+
+-- make filetree for jumplist entries
+local function make_ft_for_jl_entries(jl_entries)
+  -- ## filetree lines
+  local bufnr_list = {}
+  local jl_entry_map = {}
+  for _, entry in ipairs(jl_entries) do
+    table.insert(bufnr_list, entry.bufnr)
+    jl_entry_map[entry.bufnr] = entry
+  end
+
+  local filetree = wsn_filetree:make_filetree(bufnr_list)
+  local ft_lines = wsn_filetree:stringify_filetree(filetree) -- filetree line
+
+  -- ## lines
+  local lines = {}
+  for _, ft_line in ipairs(ft_lines) do
+    local line = {}
+    if ft_line.type == 'dir' then
+      table.insert(line, { ft_line.show.indent, 'WsNavigatorGreyText' })
+      table.insert(line, { ft_line.show.path, 'WsNavigatorGreyText' })
+    else
+      local entry = jl_entry_map[ft_line.bufnr]
+
+      -- ## filename field
+      local filename
+      if ft_line.show.path ~= '' then
+        filename = ft_line.show.path
+      else
+        filename = '[No Name]'
+      end
+
+      local filename_hl = ''
+      if not Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
+        filename_hl = 'WsNavigatorGreyText'
+      elseif Flag.has_flag(entry.buf_mode, BufMode.CurBuf) then
+        filename_hl = 'WsNavigatorGreenText'
+      elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList)
+          and not Flag.has_flag(entry.buf_mode, BufMode.InJumpList) then
+        filename_hl = 'WsNavigatorDarkCyanText'
+      end
+
+      -- ## modified field
+      local is_modified = vim.fn.getbufinfo(entry.bufnr)[1].changed == 1 and true or false
+      local is_modified_str = ''
+      local is_modified_hl = ''
+      if is_modified then
+        is_modified_str = '[+]'
+        is_modified_hl = 'WsNavigatorBlueText'
+      end
+
+      -- ## key field
+      local key_hl = 'WsNavigatorRedText'
+      local key_str = entry.key or ''
+
+      -- ## line number field
+      local lnum_str = tostring(entry.lnum or 0)
+      local lnum_hl = filename_hl
+
+      -- ## concatenate fields
+      -- ### indent
+      table.insert(line, { ft_line.show.indent, 'WsNavigatorGreyText' })
+      -- ### filename
+      table.insert(line, { filename, filename_hl })
+
+      -- ### modified
+      table.insert(line, { ' ' })
+      if is_modified then
+        table.insert(line, { is_modified_str, is_modified_hl })
+        table.insert(line, { ' ' })
+      end
+
+      -- ### key
+      table.insert(line, { key_str, key_hl })
+      table.insert(line, { ' ' })
+
+      -- ### line number
+      table.insert(line, { lnum_str, lnum_hl })
+    end
 
     table.insert(lines, line)
   end
@@ -243,7 +362,13 @@ end
 
 local function make_lines_for_entries(entries)
   local lines = {}
-  lines = vim.fn.extend(lines, make_lines_for_jl_entries(entries[EntryType.JumpList]))
+  if setup_opts.display_mode == 'list' then
+    lines = vim.fn.extend(lines, make_lines_for_jl_entries(entries[EntryType.JumpList]))
+  elseif setup_opts.display_mode == 'filetree' then
+    lines = vim.fn.extend(lines, make_ft_for_jl_entries(entries[EntryType.JumpList]))
+  else
+    lines = vim.fn.extend(lines, make_ft_for_jl_entries(entries[EntryType.JumpList]))
+  end
 
   return lines
 end

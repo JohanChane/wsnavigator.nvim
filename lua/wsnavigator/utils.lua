@@ -20,6 +20,37 @@ function Flag.remove_flag(value, flag)
   end
 end
 
+local function is_array(t)
+  if type(t) ~= 'table' then return false end
+  local max = 0
+  for k, v in pairs(t) do
+    if type(k) ~= 'number' then return false end
+    if k > max then max = k end
+  end
+  return max == #t
+end
+
+-- Modify the dst object in place, without creating a new object.
+local function tbl_deep_extend_inplace(dst, src)
+  for k, v in pairs(src) do
+    if type(v) == 'table' and type(dst[k]) == 'table' then
+      if is_array(v) then
+        -- If both are arrays, extend the destination array
+        for _, v2 in ipairs(v) do
+          table.insert(dst[k], v2)
+        end
+      else
+        -- Recursively merge tables
+        tbl_deep_extend_inplace(dst[k], v)
+      end
+    else
+      -- Directly set value
+      dst[k] = v
+    end
+  end
+end
+
 return {
-  Flag = Flag
+  Flag = Flag,
+  tbl_deep_extend_inplace = tbl_deep_extend_inplace
 }

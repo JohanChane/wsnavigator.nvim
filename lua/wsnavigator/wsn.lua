@@ -88,6 +88,12 @@ local function open_wsn()
   create_wsn_win(entries)
 end
 
+local function set_opts(opts)
+  --local setup_opts = require('wsnavigator.config').setup_opts
+  require('wsnavigator.utils').tbl_deep_extend_inplace(setup_opts, opts)
+end
+
 return {
-  open_wsn = open_wsn
+  open_wsn = open_wsn,
+  set_opts = set_opts,
 }

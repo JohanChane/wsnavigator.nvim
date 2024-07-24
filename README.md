@@ -19,10 +19,6 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
   'JohanChane/wsnavigator.nvim',
   config = function()
     require('wsnavigator').setup{}
-
-    vim.keymap.set('n', 'tt', function()
-      require('wsnavigator').open_wsn()
-    end, { noremap = true })
   end,
 },
 ```
@@ -36,24 +32,52 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
     require('wsnavigator').setup {
       ui = {
         float = {
-          border    = 'single',         -- see ':h nvim_open_win'
-          float_hl  = 'Normal',         -- see ':h winhl'
+          border    = 'single', -- see ':h nvim_open_win'
+          float_hl  = 'Normal', -- see ':h winhl'
           border_hl = 'Normal',
-          blend     = 0,                -- see ':h winblend'
-          height    = 0.9,              -- Num from 0 - 1 for measurements
+          blend     = 0,      -- see ':h winblend'
+          height    = 0.9,    -- Num from 0 - 1 for measurements
           width     = 0.9,
-          x         = 0.5,              -- X and Y Axis of Window
+          x         = 0.5,    -- X and Y Axis of Window
           y         = 0.4
         },
       },
-      max_len_of_entries = 20,    -- max length of entries
+      max_len_of_entries = 20,   -- max length of entries.
+      display_mode = 'filetree', -- filetree | list
       jumplist = {
-        buf_only = false          -- show buffer only
-      }
+        buf_only = false         -- show buf_only
+      },
+      filetree = {
+        --theme = { -- user your theme
+        --  indent = '  ',
+        --  branch = '│ ',
+        --  last_child = '└─',
+        --  mid_child = '├─',
+        --},
+        theme_name = 'classic', -- 'classic' | 'fine' | 'bold' | 'dotted'
+        -- | 'minimal' | 'double' | 'arrows' | 'simple' | 'tree' | 'compact_tree'
+      },
+      debug = false,
     }
 
+    -- use buf_only
     vim.keymap.set('n', 'tt', function()
-      require('wsnavigator').open_wsn()
+      local wsn = require('wsnavigator')
+      wsn.set_opts({ jumplist = { buf_only = true } })
+      wsn.open_wsn()
+    end, { noremap = true })
+
+    -- use jumplist
+    vim.keymap.set('n', 'tj', function()
+      local wsn = require('wsnavigator')
+      wsn.set_opts({ jumplist = { buf_only = false } })
+      wsn.open_wsn()
+    end, { noremap = true })
+
+    -- switch_display_mode
+    vim.keymap.set('n', 'ts', function()
+      local wsn = require('wsnavigator')
+      wsn.switch_display_mode()
     end, { noremap = true })
   end,
 },
@@ -61,7 +85,8 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 
 ## TODOs
 
--   [ ] Display buffers according to the file tree. See [ref](https://www.reddit.com/r/neovim/comments/1e9vibn/use_neotree_to_quick_switch_buffers_and_manage/). If it's not too complex, I will try to implement it.
+-   [x] Display buffers according to the file tree. See [ref](https://www.reddit.com/r/neovim/comments/1e9vibn/use_neotree_to_quick_switch_buffers_and_manage/). If it's not too complex, I will try to implement it.
+-   [ ] Combine with fuzzy find plugin.
 -   [ ] Display the current line's function in the buffer, format `filename key function:offset:lnum`
 -   [ ] `SaveProject`: Record `project_name:path`
 -   [ ] `SaveMark`: Record `filename key function:offset:lnum` for each project.
