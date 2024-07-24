@@ -16,7 +16,7 @@
     require('wsnavigator').setup{}
 
     vim.keymap.set('n', 'tt', function()
-      require('wsnavigator').create_win()
+      require('wsnavigator').open_wsn()
     end, { noremap = true })
   end,
 },
@@ -48,7 +48,7 @@
     }
 
     vim.keymap.set('n', 'tt', function()
-      require('wsnavigator').create_win()
+      require('wsnavigator').open_wsn()
     end, { noremap = true })
   end,
 },

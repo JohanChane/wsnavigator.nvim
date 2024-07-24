@@ -1,91 +1,51 @@
-local config = require('wsnavigator').get_config()
+local setup_opts = require('wsnavigator.config').setup_opts
 local Flag = require('wsnavigator.utils').Flag
+local wsn_keylist = require('wsnavigator.keylist')
+
+local key1_list
+local key2_list
 
 vim.api.nvim_set_hl(0, 'WsNavigatorRedText', { fg = '#e06c75' })
 vim.api.nvim_set_hl(0, 'WsNavigatorGreenText', { fg = '#98c379' })
 vim.api.nvim_set_hl(0, 'WsNavigatorBlueText', { fg = '#61afef' })
 vim.api.nvim_set_hl(0, 'WsNavigatorGreyText', { fg = '#808080' })
-
-local key1_list = nil
-local key2_list = nil
+vim.api.nvim_set_hl(0, 'WsNavigatorDarkCyanText', { fg = '#006666' })
 
 local EntryType = {
   JumpList = 'JumpList',
 }
 
 local BufMode = {
-  InBufList = 1,  -- 01
-  CurBuf = 2      -- 10
+  InBufList = 1,  -- 001
+  CurBuf = 2,     -- 010
+  InJumpList = 4, -- 100. In jumplist
 }
 
--- Define a weight table representing the typing difficulty of each key
-local key_weight = {
-  f = 1,
-  j = 2,
-  k = 3,
-  l = 4,
-  a = 4,
-  d = 6,
-  s = 7,
-}
+local function get_keylist(n)
+  n = math.min(n, setup_opts.max_len_of_entries)
 
-local key_layout = {
-  left = {
-    f = true,
-    d = true,
-    s = true,
-    a = true,
-  },
-  right = {
-    j = true,
-    k = true,
-    l = true,
-  },
-}
-
--- Function to calculate the weight of a combination
-local function comb_weight(combo)
-  local k1 = string.sub(combo, 1, 1)
-  local k2 = string.sub(combo, 2, 2)
-  local weight = key_weight[k1] + key_weight[k2]
-
-  if k1 == k2 then
-    weight = weight - 2
-    -- If the combination is typed with the same hand, increase the weight
-  elseif key_layout.left[k1] and key_layout.left[k2] then
-    weight = weight + 2
-  elseif key_layout.right[k1] and key_layout.right[k2] then
-    weight = weight + 2
+  if not key1_list then
+    key1_list = key1_list or wsn_keylist.make_keylist(1)
+  end
+  if n <= #key1_list then
+    return key1_list
   end
 
-  return weight
+  if not key2_list then
+    key2_list = key2_list or wsn_keylist.make_keylist(2)
+  end
+  if n <= #key2_list then
+    return key2_list
+  end
+
+  return key2_list
 end
 
-local function make_keylist(kw, n)
-  local keylist = {}
-  if n == 1 then
-    for k, _ in pairs(kw) do
-      table.insert(keylist, k)
-    end
+local function get_key(keylist)
+  local key = keylist.list[keylist.idx]
+  keylist.idx = keylist.idx + 1
 
-    table.sort(keylist, function(a, b)
-      return kw[a] < kw[b]
-    end)
-  elseif n == 2 then
-    -- Generate all possible combinations of two keys
-    for k1, _ in pairs(kw) do
-      for k2, _ in pairs(kw) do
-        table.insert(keylist, k1 .. k2)
-      end
-    end
-
-    -- Sort the combinations by their weight
-    table.sort(keylist, function(a, b)
-      return comb_weight(a) < comb_weight(b)
-    end)
-  end
-
-  return keylist
+  return key
 end
 
 -- Check if a buffer should be excluded from the buffer line
@@ -96,132 +56,143 @@ local function is_excluded(bufnr)
   return is_ex
 end
 
-local function get_my_jumplist(buf_list, buf_set)
-  local is_buf_only = config.jumplist.buf_only
-
-  local dst_jumplist = {}
-  local jumplist_set = {}
-
-  local jumplist = vim.fn.getjumplist()[1]
-  local cur_buf_pos
-  for i, jump in ipairs(jumplist) do
-    if is_buf_only then
-      if buf_set[jump.bufnr] then
-        table.insert(dst_jumplist, jump)
-        jumplist_set[jump.bufnr] = true
-      end
-    else
-      table.insert(dst_jumplist, jump)
-      jumplist_set[jump.bufnr] = true
-    end
-
-    if jump.bufnr == vim.api.nvim_get_current_buf() then
-      cur_buf_pos = i
-    end
-  end
-
-  local buf_jumplist = {}
-  for _, bufnr in ipairs(buf_list) do
-    if not jumplist_set[bufnr] then
-      local jump = { bufnr = bufnr }
-      local bufinfo = vim.fn.getbufinfo(bufnr)[1]
-      jump.filename = bufinfo.name
-      table.insert(buf_jumplist, jump)
-    end
-  end
-  dst_jumplist = vim.fn.extend(dst_jumplist, buf_jumplist)
-
-  if cur_buf_pos then
-    local jump = jumplist[cur_buf_pos]
-    table.insert(dst_jumplist, jump)
-  end
-
-  return dst_jumplist
-end
-
-local function get_buf_list()
-  local bufnr_list_included = {}
+-- get included buflist
+local function get_incl_buflist()
+  local dst_buflist = {}
+  local dst_bufset = {}
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
     if not is_excluded(bufnr) then
-      table.insert(bufnr_list_included, bufnr)
+      table.insert(dst_buflist, bufnr)
+      dst_bufset[bufnr] = true
     end
   end
 
-  return bufnr_list_included
+  return { list = dst_buflist, set = dst_bufset }
 end
 
-local function get_keylist(n)
-  n = math.min(n, config.max_len_of_entries)
+-- get buffer list from jumplist
+local function get_buflist_from_jl()
+  local jumplist = vim.fn.getjumplist()[1]
 
-  if not key1_list then
-    key1_list = key1_list or make_keylist(key_weight, 1)
-  end
-  if n <= #key1_list then
-    return key1_list
-  end
-
-  if not key2_list then
-    key2_list = key2_list or make_keylist(key_weight, 2)
-  end
-  if n <= #key2_list then
-    return key2_list
-  end
-
-  return key2_list
-end
-
-local function make_jumplist_entries(jumplist, key_list, idx, buf_set)
-  local entries = {}
-  local jumplist_buf_set = {}
+  local dst_buflist = {}
+  local dst_bufmap = {}
   for i = #jumplist, 1, -1 do
+    if #dst_buflist >= setup_opts.max_len_of_entries then
+      break
+    end
+
     local jump = jumplist[i]
 
-    if #entries < config.max_len_of_entries and not jumplist_buf_set[jump.bufnr] then
-      jumplist_buf_set[jump.bufnr] = true
-
-      local entry = {}
-      entry.key = key_list[idx]
-      entry.bufnr = jump.bufnr
-      entry.lnum = jump.lnum
-      entry.col = jump.col
-
-      local buf_mode = 0
-      if jump.bufnr == vim.api.nvim_get_current_buf() then
-        buf_mode = Flag.add_flag(buf_mode, BufMode.CurBuf)
-        buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
-      elseif buf_set[jump.bufnr] then
-        buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
-      else
-      end
-      entry.buf_mode = buf_mode
-      table.insert(entries, entry)
-
-      idx = idx + 1
+    if not dst_bufmap[jump.bufnr] then
+      table.insert(dst_buflist, jump.bufnr)
+      dst_bufmap[jump.bufnr] = {}
+      dst_bufmap[jump.bufnr].jump = jump
     end
+  end
+
+  return { list = dst_buflist, map = dst_bufmap }
+end
+
+-- make wsnavigator buflist
+local function make_wsn_buflist(jl_buflist, incl_buflist)
+  local buflist_in_bl = {} -- buffers in included buflist
+  local buflist_ex_bl = {} -- buffers not in included buflist
+  for _, bufnr in ipairs(jl_buflist.list) do
+    if incl_buflist.set[bufnr] then
+      table.insert(buflist_in_bl, bufnr)
+    else
+      table.insert(buflist_ex_bl, bufnr)
+    end
+  end
+
+  local buflist_ex_jl = {} -- buffers not in jumplist
+  for _, bufnr in ipairs(incl_buflist.list) do
+    if not jl_buflist.map[bufnr] then
+      table.insert(buflist_in_bl, bufnr)
+    end
+  end
+
+  return { buflist_in_bl, buflist_ex_jl, buflist_ex_bl }
+end
+
+local function make_jumplist_entries(jl_buflist, incl_buflist)
+  local wsn_buflist = make_wsn_buflist(jl_buflist, incl_buflist)
+  local dst_buflist = {}
+  dst_buflist = vim.fn.extend(dst_buflist, { vim.api.nvim_get_current_buf() })
+  dst_buflist = vim.fn.extend(dst_buflist, wsn_buflist[1])
+  dst_buflist = vim.fn.extend(dst_buflist, wsn_buflist[2])
+  if not setup_opts.jumplist.buf_only then
+    dst_buflist = vim.fn.extend(dst_buflist, wsn_buflist[3])
+  end
+
+  local entries = {}
+  local entry_set = {}
+  for _, bufnr in ipairs(dst_buflist) do
+    if #entries >= setup_opts.max_len_of_entries then
+      break
+    end
+
+    if entry_set[bufnr] then
+      goto continue
+    end
+
+    local jump
+    if jl_buflist.map[bufnr] then
+      jump = jl_buflist.map[bufnr].jump
+    else
+      jump = { bufnr = bufnr }
+    end
+
+    local entry = {}
+    entry.bufnr = jump.bufnr
+    entry.lnum = jump.lnum
+    entry.col = jump.col
+
+    local buf_mode = 0
+    if jump.bufnr == vim.api.nvim_get_current_buf() then
+      buf_mode = Flag.add_flag(buf_mode, BufMode.CurBuf)
+      buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
+    end
+    if incl_buflist.set[jump.bufnr] then
+      buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
+    end
+    if jl_buflist.map[jump.bufnr] then
+      buf_mode = Flag.add_flag(buf_mode, BufMode.InJumpList)
+    end
+
+    entry.buf_mode = buf_mode
+    table.insert(entries, entry)
+    entry_set[entry.bufnr] = true
+
+    ::continue::
   end
 
   return entries
 end
 
 local function make_entries()
+  local jl_buflist = get_buflist_from_jl()
+  local buflist = get_incl_buflist()
+
   local entries = {}
+  entries[EntryType.JumpList] = make_jumplist_entries(jl_buflist, buflist)
 
-  local buf_list = get_buf_list()
-  local buf_set = {}
-  for _, bufnr in ipairs(buf_list) do
-    buf_set[bufnr] = true
+  -- ## set key
+  local entry_num = 0
+  for _, ents in pairs(entries) do
+    entry_num = entry_num + #ents
   end
+  local key_list = get_keylist(entry_num)
+  local keylist = { list = key_list, idx = 1 }
 
-  local jumplist = get_my_jumplist(buf_list, buf_set)
-  local key_list = get_keylist(#jumplist)
-
-  local idx = 1
-
-  entries[EntryType.JumpList] = make_jumplist_entries(jumplist, key_list, idx, buf_set)
+  for _, entry in ipairs(entries[EntryType.JumpList]) do
+    entry.key = get_key(keylist)
+  end
 
   return entries
 end
 
+-- make lines for jumplist entries
 local function make_lines_for_jl_entries(jl_entries)
   local lines = {}
   for _, entry in ipairs(jl_entries) do
@@ -240,6 +211,9 @@ local function make_lines_for_jl_entries(jl_entries)
       filename_hl = 'WsNavigatorGreyText'
     elseif Flag.has_flag(entry.buf_mode, BufMode.CurBuf) then
       filename_hl = 'WsNavigatorGreenText'
+    elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList)
+        and not Flag.has_flag(entry.buf_mode, BufMode.InJumpList) then
+      filename_hl = 'WsNavigatorDarkCyanText'
     end
 
     local is_modified = vim.fn.getbufinfo(entry.bufnr)[1].changed == 1 and true or false
