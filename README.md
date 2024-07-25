@@ -56,6 +56,10 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
         theme_name = 'classic', -- 'classic' | 'fine' | 'bold' | 'dotted'
         -- | 'minimal' | 'double' | 'arrows' | 'simple' | 'tree' | 'compact_tree'
       },
+      --keymaps = {       -- keymaps for wsnavigator buffer. `:h :map`
+      --  quit = { 'q', '<Esc>' },
+      --  switch_display_mode = { 'ts' }
+      --},
       theme = {
         --entry_hls = {     -- Ref `default_entry_hls`
         --  WsnKey = { fg = '#ff0000' },
@@ -75,12 +79,6 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
       local wsn = require('wsnavigator')
       wsn.set_opts({ jumplist = { buf_only = false } })
       wsn.open_wsn()
-    end, { noremap = true })
-
-    -- switch_display_mode
-    vim.keymap.set('n', 'ts', function()
-      local wsn = require('wsnavigator')
-      wsn.switch_display_mode()
     end, { noremap = true })
   end,
 },

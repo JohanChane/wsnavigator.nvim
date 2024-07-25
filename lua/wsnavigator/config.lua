@@ -20,6 +20,10 @@ local default_opts = {
     theme = nil, -- user theme
     theme_name = 'classic',
   },
+  keymaps = {       -- keymaps for wsnavigator buffer. `:h :map`
+    quit = { 'q', '<Esc>' },
+    switch_display_mode = { 'ts' }
+  },
   theme = {
     entry_hls = nil -- user entry highlightings
   },

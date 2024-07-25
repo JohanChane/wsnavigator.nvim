@@ -75,12 +75,22 @@ local function create_wsn_win(entries)
   set_keymaps(win.buf_hdr, keymaps)
 
   -- For quitting wsnavigator
-  vim.keymap.set('n', 'q', function()
-    Window.remove_win(win)
-  end, { buffer = win.buf_hdr, noremap = true })
-  vim.keymap.set('n', '<Esc>', function()
-    Window.remove_win(win)
-  end, { buffer = win.buf_hdr, noremap = true })
+  for _, key in ipairs(setup_opts.keymaps.quit) do
+    vim.keymap.set('n', key, function()
+      Window.remove_win(win)
+    end, { buffer = win.buf_hdr, noremap = true })
+    vim.keymap.set('n', key, function()
+      Window.remove_win(win)
+    end, { buffer = win.buf_hdr, noremap = true })
+  end
+
+  for _, key in ipairs(setup_opts.keymaps.switch_display_mode) do
+    vim.keymap.set('n', key, function()
+      Window.remove_win(win)
+      require('wsnavigator').switch_display_mode()
+      require('wsnavigator').open_wsn()
+    end, { buffer = win.buf_hdr, noremap = true })
+  end
 end
 
 local function open_wsn()
