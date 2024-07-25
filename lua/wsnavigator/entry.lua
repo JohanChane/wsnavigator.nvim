@@ -2,16 +2,48 @@ local setup_opts = require('wsnavigator.config').setup_opts
 local Flag = require('wsnavigator.utils').Flag
 local wsn_keylist = require('wsnavigator.keylist')
 local FileTree = require('wsnavigator.filetree').FileTree
-local wsn_filetree = FileTree:new({theme = require('wsnavigator').get_ft_theme()})
+local wsn_filetree = FileTree:new({ theme = require('wsnavigator').get_ft_theme() })
 
 local key1_list
 local key2_list
 
-vim.api.nvim_set_hl(0, 'WsNavigatorRedText', { fg = '#e06c75' })
-vim.api.nvim_set_hl(0, 'WsNavigatorGreenText', { fg = '#98c379' })
-vim.api.nvim_set_hl(0, 'WsNavigatorBlueText', { fg = '#61afef' })
-vim.api.nvim_set_hl(0, 'WsNavigatorGreyText', { fg = '#808080' })
-vim.api.nvim_set_hl(0, 'WsNavigatorDarkCyanText', { fg = '#006666' })
+-- Define color values
+local wsn_hls = {
+  wsn_light_red = { fg = '#e06c75' },
+  wsn_light_green = { fg = '#98c379' },
+  wsn_light_grey = { fg = '#D3D3D3' },
+  wsn_blue = { fg = '#2980b9' },
+  wsn_grey = { fg = '#808080' },
+  wsn_pink = { fg = '#d33682' },
+  wsn_dark_teal = { fg = '#006666' },
+}
+
+-- Assign color values to highlighting groups
+local default_entry_hls = {
+  WsnKey = wsn_hls.wsn_light_red,              -- key
+  WsnCurBufFilename = wsn_hls.wsn_light_green, -- filename of current buffer
+  WsnInBlFilename = wsn_hls.wsn_light_grey,    -- filename of the buffer in listed buffers
+  WsnBlExJlFilename = wsn_hls.wsn_blue,        -- filename of buffer in listed buffers not in jumplist
+  WsnExBlFilename = wsn_hls.wsn_grey,          -- filename of buffer not in listed buffers
+  WsnModified = wsn_hls.wsn_pink,              -- file modified
+  WsnLineNum = wsn_hls.wsn_grey,               -- line number
+  WsnFtIndent = wsn_hls.wsn_grey,              -- filetree indent
+  WsnFtDirPath = wsn_hls.wsn_dark_teal,        -- filetree dir path
+}
+
+local entry_hls = {}
+if setup_opts.theme.entry_hls then
+  entry_hls = vim.tbl_deep_extend('force', default_entry_hls, setup_opts.theme.entry_hls)
+else
+  entry_hls = default_entry_hls
+end
+
+local entry_hl_names = {}
+
+for hl_group, hl_attrs in pairs(entry_hls) do
+  vim.api.nvim_set_hl(0, hl_group, hl_attrs)
+  entry_hl_names[hl_group] = hl_group
+end
 
 local EntryType = {
   JumpList = 'JumpList',
@@ -106,7 +138,6 @@ end
 
 -- make wsnavigator buflist
 local function make_wsn_buflist(jl_buflist, incl_buflist)
-
   local buflist_in_bl = {} -- buffers in included buflist
   local buflist_ex_bl = {} -- buffers not in included buflist
   for _, bufnr in ipairs(jl_buflist.list) do
@@ -225,12 +256,14 @@ local function make_lines_for_jl_entries(jl_entries)
     end
     local filename_hl = ''
     if not Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
-      filename_hl = 'WsNavigatorGreyText'
+      filename_hl = entry_hl_names.WsnExBlFilename
     elseif Flag.has_flag(entry.buf_mode, BufMode.CurBuf) then
-      filename_hl = 'WsNavigatorGreenText'
+      filename_hl = entry_hl_names.WsnCurBufFilename
     elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList)
         and not Flag.has_flag(entry.buf_mode, BufMode.InJumpList) then
-      filename_hl = 'WsNavigatorDarkCyanText'
+      filename_hl = entry_hl_names.WsnBlExJlFilename
+    elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
+      filename_hl = entry_hl_names.WsnInBlFilename
     end
 
     -- ## modified field
@@ -239,11 +272,11 @@ local function make_lines_for_jl_entries(jl_entries)
     local is_modified_hl = ''
     if is_modified then
       is_modified_str = '[+]'
-      is_modified_hl = 'WsNavigatorBlueText'
+      is_modified_hl = entry_hl_names.WsnModified
     end
 
     -- ## key field
-    local key_hl = 'WsNavigatorRedText'
+    local key_hl = entry_hl_names.WsnKey
     local key_str = entry.key or ''
 
     -- ## line number field
@@ -293,8 +326,8 @@ local function make_ft_for_jl_entries(jl_entries)
   for _, ft_line in ipairs(ft_lines) do
     local line = {}
     if ft_line.type == 'dir' then
-      table.insert(line, { ft_line.show.indent, 'WsNavigatorGreyText' })
-      table.insert(line, { ft_line.show.path, 'WsNavigatorGreyText' })
+      table.insert(line, { ft_line.show.indent, entry_hl_names.WsnFtIndent })
+      table.insert(line, { ft_line.show.path, entry_hl_names.WsnFtDirPath })
     else
       local entry = jl_entry_map[ft_line.bufnr]
 
@@ -308,12 +341,14 @@ local function make_ft_for_jl_entries(jl_entries)
 
       local filename_hl = ''
       if not Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
-        filename_hl = 'WsNavigatorGreyText'
+        filename_hl = entry_hl_names.WsnExBlFilename
       elseif Flag.has_flag(entry.buf_mode, BufMode.CurBuf) then
-        filename_hl = 'WsNavigatorGreenText'
+        filename_hl = entry_hl_names.WsnCurBufFilename
       elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList)
           and not Flag.has_flag(entry.buf_mode, BufMode.InJumpList) then
-        filename_hl = 'WsNavigatorDarkCyanText'
+        filename_hl = entry_hl_names.WsnBlExJlFilename
+      elseif Flag.has_flag(entry.buf_mode, BufMode.InBufList) then
+        filename_hl = entry_hl_names.WsnInBlFilename
       end
 
       -- ## modified field
@@ -322,11 +357,11 @@ local function make_ft_for_jl_entries(jl_entries)
       local is_modified_hl = ''
       if is_modified then
         is_modified_str = '[+]'
-        is_modified_hl = 'WsNavigatorBlueText'
+        is_modified_hl = entry_hl_names.WsnModified
       end
 
       -- ## key field
-      local key_hl = 'WsNavigatorRedText'
+      local key_hl = entry_hl_names.WsnKey
       local key_str = entry.key or ''
 
       -- ## line number field
@@ -335,7 +370,7 @@ local function make_ft_for_jl_entries(jl_entries)
 
       -- ## concatenate fields
       -- ### indent
-      table.insert(line, { ft_line.show.indent, 'WsNavigatorGreyText' })
+      table.insert(line, { ft_line.show.indent, entry_hl_names.WsnFtIndent })
       -- ### filename
       table.insert(line, { filename, filename_hl })
 

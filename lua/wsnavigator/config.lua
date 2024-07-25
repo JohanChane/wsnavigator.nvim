@@ -20,6 +20,9 @@ local default_opts = {
     theme = nil, -- user theme
     theme_name = 'classic',
   },
+  theme = {
+    entry_hls = nil -- user entry highlightings
+  },
   debug = false,
 }
 

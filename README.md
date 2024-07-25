@@ -56,6 +56,11 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
         theme_name = 'classic', -- 'classic' | 'fine' | 'bold' | 'dotted'
         -- | 'minimal' | 'double' | 'arrows' | 'simple' | 'tree' | 'compact_tree'
       },
+      theme = {
+        --entry_hls = {     -- Ref `default_entry_hls`
+        --  WsnKey = { fg = '#ff0000' },
+        --}
+      },
     }
 
     -- use buf_only
