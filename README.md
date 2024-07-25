@@ -10,6 +10,7 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 - List buffers in the order of the jumplist.
 - `filetree` display mode.
 - Different categories (listed, in jumplist, etc.) of buffers are displayed in different colors, along with relevant buffer information (currently only displaying the current line number).
+- Highlight the project root especially.
 
 ## Installation
 
@@ -116,4 +117,5 @@ keymaps = {
 
 ![wsn_jumplist](https://github.com/user-attachments/assets/0e017a41-8e85-466c-8b0c-f18fe7f7b41e)
 
-![wsn_filetree](https://github.com/user-attachments/assets/9241018d-0e85-43b9-8e1a-464d08de4383)
+![wsn_filetree](https://github.com/user-attachments/assets/4524eb20-4248-4440-b914-40ba59634c5e)
+
