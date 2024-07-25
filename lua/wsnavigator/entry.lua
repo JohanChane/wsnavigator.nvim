@@ -16,6 +16,7 @@ local wsn_hls = {
   wsn_grey = { fg = '#808080' },
   wsn_pink = { fg = '#d33682' },
   wsn_dark_teal = { fg = '#006666' },
+  wsn_amethyst = { fg = '#9b59b6' },
 }
 
 -- Assign color values to highlighting groups
@@ -29,6 +30,7 @@ local default_entry_hls = {
   WsnLineNum = wsn_hls.wsn_grey,               -- line number
   WsnFtIndent = wsn_hls.wsn_grey,              -- filetree indent
   WsnFtDirPath = wsn_hls.wsn_dark_teal,        -- filetree dir path
+  WsnFtProjNode = wsn_hls.wsn_amethyst,        -- filetree project node
 }
 
 local entry_hls = {}
@@ -308,6 +310,18 @@ local function make_lines_for_jl_entries(jl_entries)
   return lines
 end
 
+-- make filenames contains project node
+local function make_proj_filenames(ft_line)
+  local proj_filenames = {}
+  local begin = ft_line.show.proj_node_pos.begin
+  local finish = ft_line.show.proj_node_pos.begin + ft_line.show.proj_node_pos.length - 1
+  proj_filenames.left = ft_line.show.path:sub(1, begin - 1)
+  proj_filenames.proj = ft_line.show.path:sub(begin, finish)
+  proj_filenames.right = ft_line.show.path:sub(finish + 1)
+
+  return proj_filenames
+end
+
 -- make filetree for jumplist entries
 local function make_ft_for_jl_entries(jl_entries)
   -- ## filetree lines
@@ -326,8 +340,19 @@ local function make_ft_for_jl_entries(jl_entries)
   for _, ft_line in ipairs(ft_lines) do
     local line = {}
     if ft_line.type == 'dir' then
+      local proj_filenames
+      if ft_line.show.proj_node_pos then
+        proj_filenames = make_proj_filenames(ft_line)
+      end
+
       table.insert(line, { ft_line.show.indent, entry_hl_names.WsnFtIndent })
-      table.insert(line, { ft_line.show.path, entry_hl_names.WsnFtDirPath })
+      if proj_filenames then
+        table.insert(line, { proj_filenames.left, entry_hl_names.WsnFtDirPath })
+        table.insert(line, { proj_filenames.proj, entry_hl_names.WsnFtProjNode })
+        table.insert(line, { proj_filenames.right, entry_hl_names.WsnFtDirPath })
+      else
+        table.insert(line, { ft_line.show.path, entry_hl_names.WsnFtDirPath })
+      end
     else
       local entry = jl_entry_map[ft_line.bufnr]
 

@@ -1,4 +1,5 @@
 local log = require('wsnavigator.log').log
+local is_project_node = require('wsnavigator.utils').is_project_node
 
 -- For testing
 local example_paths
@@ -76,7 +77,7 @@ function FileTree:new(_opts)
 
   _opts = _opts or {}
   _opts.indent = _opts.indent or '..'
-  _opts.does_test = false   -- does test filetree
+  _opts.does_test = false -- does test filetree
 
   _opts.theme = _opts.theme or FileTree.themes.classic
 
@@ -121,6 +122,7 @@ function FileTree:new(_opts)
   end
 
   -- node = {type = 'file|dir', filename, childs, bufnr(if type == 'file')}
+  -- root node = {filename = ''}, child of root node = {filename = 'home'}
   function self:make_filetree(bufnrs)
     local root = { type = 'dir', filename = '', childs = {} }
 
@@ -140,16 +142,66 @@ function FileTree:new(_opts)
     return root
   end
 
+  local function _findout_project_node_helper(node, parent_path)
+    if not node or node.type == 'file' then
+      return
+    end
+
+    local cur_path = vim.fs.joinpath(parent_path, node.filename)
+    if is_project_node(cur_path) then
+      node.is_proj_node = true
+      return
+    end
+
+    for _, child in ipairs(node.childs) do
+      _findout_project_node_helper(child, cur_path)
+    end
+  end
+
+  local function _findout_project_node(root)
+    _findout_project_node_helper(root, '/') -- Since root node = {filename = ''}
+  end
+
   -- Add filetree line
-  local function _add_ft_line(lines, node, indent, filenames, is_root)
+  local function _add_ft_line(lines, node, indent, line_nodes, is_root)
+    -- ## handle path
+    local filenames = {}
+    for _, n in ipairs(line_nodes) do
+      table.insert(filenames, n.filename)
+    end
+
     local root_path = is_root and '/' or ''
     local path = root_path .. vim.fn.join(filenames, '/')
 
-    table.insert(lines, {
+    local line = {
       type = node.type,
       bufnr = node.bufnr,
       show = { indent = indent, path = path }
-    })
+    }
+
+    -- ## handle project node
+    local cur_idx = 0
+    local cur_path = is_root and '/' or ''
+    for _, n in ipairs(line_nodes) do
+      if not n.filename or #n.filename <= 0 then
+        goto continue
+      end
+
+      if n.is_proj_node then
+        local proj_node_pos = {}
+        proj_node_pos.begin = cur_idx + 1
+        proj_node_pos.length = #n.filename
+
+        line.show.proj_node_pos = proj_node_pos
+        break
+      end
+      cur_path = vim.fs.joinpath(cur_path, n.filename)
+      cur_idx = #cur_path
+
+      ::continue::
+    end
+
+    table.insert(lines, line)
   end
 
   -- line = {type = 'file|dir', bufnr(if type == 'file'), show = {indent, filenames}}
@@ -158,30 +210,30 @@ function FileTree:new(_opts)
     parent_indent = parent_indent or ''
 
     if #node.childs == 0 then
-      log('', cur_indent .. (node.filename or ''), {print_msg_only = true})
-      _add_ft_line(lines, node, cur_indent, { node.filename })
+      log('', cur_indent .. (node.filename or ''), { print_msg_only = true })
+      _add_ft_line(lines, node, cur_indent, { node })
       return
     end
 
     local line
-    local cur_filenames = {}
+    local line_nodes = {} -- nodes in a line
     if is_parent_root then
       line = cur_indent .. '/' .. node.filename
-      table.insert(cur_filenames, node.filename)
+      table.insert(line_nodes, node)
     else
       line = cur_indent .. node.filename
-      table.insert(cur_filenames, node.filename)
+      table.insert(line_nodes, node)
     end
 
     local current = node
     while #current.childs == 1 and current.childs[1].type == 'dir' do
       current = current.childs[1]
       line = line .. '/' .. current.filename
-      table.insert(cur_filenames, current.filename)
+      table.insert(line_nodes, current)
     end
-    log('', line, {print_msg_only = true})
-    _add_ft_line(lines, current, cur_indent, cur_filenames, is_parent_root)
-    cur_filenames = {}
+    log('', line, { print_msg_only = true })
+    _add_ft_line(lines, current, cur_indent, line_nodes, is_parent_root)
+    line_nodes = {}
 
     for i, child in ipairs(current.childs) do
       if child.type == 'file' then
@@ -191,8 +243,8 @@ function FileTree:new(_opts)
         else
           indent_str = _opts.theme.mid_child
         end
-        log('', parent_indent .. indent_str .. child.filename, {print_msg_only = true})
-        _add_ft_line(lines, child, parent_indent .. indent_str, { child.filename })
+        log('', parent_indent .. indent_str .. child.filename, { print_msg_only = true })
+        _add_ft_line(lines, child, parent_indent .. indent_str, { child })
       else
         local cur_indent_str
         local parent_indent_str
@@ -210,18 +262,20 @@ function FileTree:new(_opts)
   end
 
   function self:stringify_filetree(node)
+    _findout_project_node(node)
+
     local lines = {}
     for _, child in ipairs(node.childs) do
       _stringify_tree_helper(lines, child, true, '', '')
     end
-    log('stringify_filetree', '', {inspect = function() print(vim.inspect(lines)) end})
+    log('stringify_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
     return lines
   end
 
   -- For testing
   function self:print_filetree(node)
     local lines = self:stringify_filetree(node)
-    log('print_filetree', '', {inspect = function() print(vim.inspect(lines)) end})
+    log('print_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
     for _, line in ipairs(lines) do
       print(line.show.indent .. line.show.path)
     end

@@ -50,7 +50,26 @@ local function tbl_deep_extend_inplace(dst, src)
   end
 end
 
+local function exists(name)
+  local stat = vim.loop.fs_stat(name)
+  return stat ~= nil
+end
+
+local function is_project_node(path)
+  local filenames_in_proj_root = { '.bzr', '.git', '.hg', '.svn', 'package.json',
+    'compile_flags.txt', '.root' }
+
+  for _, v in ipairs(filenames_in_proj_root) do
+    if exists(path .. '/' .. v) then
+      return true
+    end
+  end
+
+  return false
+end
+
 return {
   Flag = Flag,
-  tbl_deep_extend_inplace = tbl_deep_extend_inplace
+  tbl_deep_extend_inplace = tbl_deep_extend_inplace,
+  is_project_node = is_project_node,
 }
