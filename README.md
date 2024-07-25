@@ -8,6 +8,7 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 
 - Use only `fdsajkl` keys for selection.
 - List buffers in the order of the jumplist.
+- `filetree` display mode.
 - Different categories (listed, in jumplist, etc.) of buffers are displayed in different colors, along with relevant buffer information (currently only displaying the current line number).
 
 ## Installation
@@ -55,7 +56,6 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
         theme_name = 'classic', -- 'classic' | 'fine' | 'bold' | 'dotted'
         -- | 'minimal' | 'double' | 'arrows' | 'simple' | 'tree' | 'compact_tree'
       },
-      debug = false,
     }
 
     -- use buf_only
