@@ -22,7 +22,8 @@ local default_opts = {
   },
   keymaps = {       -- keymaps for wsnavigator buffer. `:h :map`
     quit = { 'q', '<Esc>' },
-    switch_display_mode = { 'ts' }
+    switch_display_mode = { 'ts' },
+    callbacks = nil,
   },
   theme = {
     entry_hls = nil -- user entry highlightings

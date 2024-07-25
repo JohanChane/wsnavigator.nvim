@@ -91,6 +91,13 @@ local function create_wsn_win(entries)
       require('wsnavigator').open_wsn()
     end, { buffer = win.buf_hdr, noremap = true })
   end
+
+  for _, key_cb in ipairs(setup_opts.keymaps.callbacks) do
+    vim.keymap.set('n', key_cb.key, function()
+      Window.remove_win(win)
+      key_cb.cb({buf_only = setup_opts.jumplist.buf_only})
+    end, { buffer = win.buf_hdr, noremap = true })
+  end
 end
 
 local function open_wsn()

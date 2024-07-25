@@ -84,10 +84,29 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 },
 ```
 
+Combine with other plugins using `callback` keymaps. e.g. `fzf-lua`:
+
+```lua
+-- keymaps config
+keymaps = {
+  callbacks = {
+    {
+      key = 'tf',
+      cb = function(opts)
+        if opts.buf_only then
+          require('fzf-lua').buffers()
+        else
+          require('fzf-lua').jumps()
+        end
+      end
+    }
+  }
+```
+
 ## TODOs
 
 -   [x] Display buffers according to the file tree. See [ref](https://www.reddit.com/r/neovim/comments/1e9vibn/use_neotree_to_quick_switch_buffers_and_manage/). If it's not too complex, I will try to implement it.
--   [ ] Combine with fuzzy find plugin.
+-   [x] Combine with fuzzy find plugin.
 -   [ ] Display the current line's function in the buffer, format `filename key function:offset:lnum`
 -   [ ] `SaveProject`: Record `project_name:path`
 -   [ ] `SaveMark`: Record `filename key function:offset:lnum` for each project.
