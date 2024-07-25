@@ -96,6 +96,6 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 
 ## Screenshots
 
-![wsnavigator_jumplist](https://github.com/user-attachments/assets/dbdd6231-4981-415c-a631-9a13aaf16886)
+![wsn_jumplist](https://github.com/user-attachments/assets/0e017a41-8e85-466c-8b0c-f18fe7f7b41e)
 
-![wsnavigator_jl_filetree](https://github.com/user-attachments/assets/a6639f69-d379-45ba-864d-497e1ffc8c7c)
+![wsn_filetree](https://github.com/user-attachments/assets/9241018d-0e85-43b9-8e1a-464d08de4383)
