@@ -1,7 +1,5 @@
 # wsnavigator.nvim
 
-![wsnavigator](https://github.com/user-attachments/assets/03cf4f92-090f-49bc-ab7f-0929d97c32a5)
-
 ## Why I Created wsnavigator.nvim
 
 I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, to switch my buffers. They are very powerful, but in most cases, I only have 5-10 files open. For this, I have to go through the steps of "open" -> "filter" -> "select". I feel that when there are fewer buffers, it should only take "open" -> "select". Having fewer buffers is a common situation, and switching buffers is a frequent operation. Therefore, I found it necessary to write a plugin to support this situation. I then searched for some quick selection plugins, such as harpoon, but they did not meet my needs. So, I wrote this plugin based on my needs.
@@ -90,3 +88,9 @@ I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, t
 -   [ ] Display the current line's function in the buffer, format `filename key function:offset:lnum`
 -   [ ] `SaveProject`: Record `project_name:path`
 -   [ ] `SaveMark`: Record `filename key function:offset:lnum` for each project.
+
+## Screenshots
+
+![wsnavigator_jumplist](https://github.com/user-attachments/assets/dbdd6231-4981-415c-a631-9a13aaf16886)
+
+![wsnavigator_jl_filetree](https://github.com/user-attachments/assets/a6639f69-d379-45ba-864d-497e1ffc8c7c)
