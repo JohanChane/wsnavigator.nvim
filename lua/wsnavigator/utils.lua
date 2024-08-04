@@ -56,7 +56,7 @@ local function exists(name)
 end
 
 local function is_project_node(path)
-  local filenames_in_proj_root = { '.bzr', '.git', '.hg', '.svn', 'package.json',
+  local filenames_in_proj_root = { '.git', '.bzr', '.hg', '.svn', 'package.json',
     'compile_flags.txt', '.root' }
 
   for _, v in ipairs(filenames_in_proj_root) do

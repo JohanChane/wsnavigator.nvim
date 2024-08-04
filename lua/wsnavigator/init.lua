@@ -12,7 +12,7 @@ function M.switch_display_mode()
 
   local next_idx = (vim.fn.index(display_modes, setup_opts.display_mode) + 1) % #display_modes + 1
   setup_opts.display_mode = display_modes[next_idx]
-  print('display_mode:', setup_opts.display_mode)
+  vim.api.nvim_echo({ { string.format('display_mode: %s', setup_opts.display_mode) } }, false, {})
 end
 
 -- get filetree theme

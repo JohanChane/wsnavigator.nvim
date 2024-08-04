@@ -1,4 +1,6 @@
-local log = require('wsnavigator.log').log
+local wsn_log = require('wsnavigator.log').Log:new({
+  enable = require('wsnavigator.config').setup_opts.debug
+})
 local is_project_node = require('wsnavigator.utils').is_project_node
 
 -- For testing
@@ -210,7 +212,7 @@ function FileTree:new(_opts)
     parent_indent = parent_indent or ''
 
     if #node.childs == 0 then
-      log('', cur_indent .. (node.filename or ''), { print_msg_only = true })
+      wsn_log:log('', cur_indent .. (node.filename or ''), { print_msg_only = true })
       _add_ft_line(lines, node, cur_indent, { node })
       return
     end
@@ -231,7 +233,7 @@ function FileTree:new(_opts)
       line = line .. '/' .. current.filename
       table.insert(line_nodes, current)
     end
-    log('', line, { print_msg_only = true })
+    wsn_log:log('', line, { print_msg_only = true })
     _add_ft_line(lines, current, cur_indent, line_nodes, is_parent_root)
     line_nodes = {}
 
@@ -243,7 +245,7 @@ function FileTree:new(_opts)
         else
           indent_str = _opts.theme.mid_child
         end
-        log('', parent_indent .. indent_str .. child.filename, { print_msg_only = true })
+        wsn_log:log('', parent_indent .. indent_str .. child.filename, { print_msg_only = true })
         _add_ft_line(lines, child, parent_indent .. indent_str, { child })
       else
         local cur_indent_str
@@ -268,14 +270,14 @@ function FileTree:new(_opts)
     for _, child in ipairs(node.childs) do
       _stringify_tree_helper(lines, child, true, '', '')
     end
-    log('stringify_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
+    wsn_log:log('stringify_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
     return lines
   end
 
   -- For testing
   function self:print_filetree(node)
     local lines = self:stringify_filetree(node)
-    log('print_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
+    wsn_log:log('print_filetree', '', { inspect = function() print(vim.inspect(lines)) end })
     for _, line in ipairs(lines) do
       print(line.show.indent .. line.show.path)
     end
