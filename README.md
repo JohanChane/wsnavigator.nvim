@@ -1,121 +1,42 @@
 # wsnavigator.nvim
 
-## Why I Created wsnavigator.nvim
+## Why I Built wsnavigator.nvim
 
-I have been using fuzzy find plugins, such as fzf-lua.nvim and telescope.nvim, to switch my buffers. They are very powerful, but in most cases, I only have 5-10 files open. For this, I have to go through the steps of "open" -> "filter" -> "select". I feel that when there are fewer buffers, it should only take "open" -> "select". Having fewer buffers is a common situation, and switching buffers is a frequent operation. Therefore, I found it necessary to write a plugin to support this situation. I then searched for some quick selection plugins, such as harpoon, but they did not meet my needs. So, I wrote this plugin based on my needs.
+I've been using fuzzy finder plugins like `fzf-lua.nvim` and `telescope.nvim` for buffer switching. While these tools are powerful,
+they feel like overkill when I only have 5-10 files open. The typical workflow of "open → filter → select" becomes unnecessarily cumbersome for a small number of buffers. 
 
-## Features
+Since working with few buffers is my common scenario and buffer switching is such a frequent operation, I wanted a solution that
+simplifies this to just "open → select". After searching for quick-selection plugins like Harpoon and not finding anything that fit my needs,
+I decided to build this plugin myself.
 
-- Use only `fdsajkl` keys for selection.
-- List buffers in the order of the jumplist.
-- `filetree` display mode.
-- Different categories (listed, in jumplist, etc.) of buffers are displayed in different colors, along with relevant buffer information (currently only displaying the current line number).
-- Highlight the project root especially.
+## Key Features
 
-## Installation
+- Intuitive selection using just the `fdsajkl` keys
+- Buffers listed in jumplist order
+- `filetree` display mode
 
-```lua
-{
-  'JohanChane/wsnavigator.nvim',
-  config = function()
-    require('wsnavigator').setup{}
-  end,
-},
-```
-
-## Configuration
+## Installation & Configuration
 
 ```lua
 {
   'JohanChane/wsnavigator.nvim',
   config = function()
-    require('wsnavigator').setup {
-      ui = {
-        float = {
-          border    = 'single', -- see ':h nvim_open_win'
-          float_hl  = 'Normal', -- see ':h winhl'
-          border_hl = 'Normal',
-          blend     = 0,      -- see ':h winblend'
-          height    = 0.9,    -- Num from 0 - 1 for measurements
-          width     = 0.9,
-          x         = 0.5,    -- X and Y Axis of Window
-          y         = 0.4
-        },
-      },
-      max_len_of_entries = 20,   -- max length of entries.
-      display_mode = 'filetree', -- filetree | list
-      jumplist = {
-        buf_only = false         -- show buf_only
-      },
-      filetree = {
-        --theme = { -- user your theme
-        --  indent = '  ',
-        --  branch = '│ ',
-        --  last_child = '└─',
-        --  mid_child = '├─',
-        --},
-        theme_name = 'classic', -- 'classic' | 'fine' | 'bold' | 'dotted'
-        -- | 'minimal' | 'double' | 'arrows' | 'simple' | 'tree' | 'compact_tree'
-      },
-      --keymaps = {       -- keymaps for wsnavigator buffer. `:h :map`
-      --  quit = { 'q', '<Esc>' },
-      --  switch_display_mode = { 'ts' }
-      --},
-      theme = {
-        --entry_hls = {     -- Ref `default_entry_hls`
-        --  WsnKey = { fg = '#ff0000' },
-        --}
-      },
-    }
-
-    -- use buf_only
-    vim.keymap.set('n', 'tt', function()
-      local wsn = require('wsnavigator')
-      wsn.set_opts({ jumplist = { buf_only = true } })
-      wsn.open_wsn()
-    end, { noremap = true })
-
-    -- use jumplist
-    vim.keymap.set('n', 'tj', function()
-      local wsn = require('wsnavigator')
-      wsn.set_opts({ jumplist = { buf_only = false } })
-      wsn.open_wsn()
-    end, { noremap = true })
-  end,
-},
-```
-
-Combine with other plugins using `callback` keymaps. e.g. `fzf-lua`:
-
-```lua
--- keymaps config
-keymaps = {
-  callbacks = {
-    {
-      key = 'tf',
-      cb = function(opts)
-        if opts.buf_only then
-          require('fzf-lua').buffers()
-        else
-          require('fzf-lua').jumps()
-        end
+    require("wsnavigator").setup({
+      max_len_of_buffers = 7,                 -- Do not set this value above `20`, (recommended: `7`).
+      cb_for_too_many_buffers = function()    -- Callback function when buffer count exceeds `max_len_of_buffers`
+        require("fzf-lua").buffers()          -- Use `fzf-lua` for buffer switching when too many buffers are open. Please config your buffer switcher.
       end
-    }
-  }
+    })
+
+    vim.keymap.set("n", "<Leader>f", function()
+      require("wsnavigator").open_wsn()
+    end, { noremap = true })
+  end
+}
 ```
 
-## TODOs
+## Advance configuration
 
--   [x] Display buffers according to the file tree. See [ref](https://www.reddit.com/r/neovim/comments/1e9vibn/use_neotree_to_quick_switch_buffers_and_manage/). If it's not too complex, I will try to implement it.
--   [x] Combine with fuzzy find plugin.
--   [x] In the filetree display mode, if a directory is a project directory, use a distinctive color to distinguish it as a project directory.
--   [ ] Display the current line's function in the buffer, format `filename key function:offset:lnum`
--   [ ] `SaveProject`: Record `project_name:path`
--   [ ] `SaveMark`: Record `filename key function:offset:lnum` for each project.
+See [ref](./docs/config.md)
 
 ## Screenshots
-
-![wsn_jumplist](https://github.com/user-attachments/assets/0e017a41-8e85-466c-8b0c-f18fe7f7b41e)
-
-![wsn_filetree](https://github.com/user-attachments/assets/4524eb20-4248-4440-b914-40ba59634c5e)
-
