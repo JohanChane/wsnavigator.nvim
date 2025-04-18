@@ -40,3 +40,7 @@ I decided to build this plugin myself.
 See [ref](./docs/config.md)
 
 ## Screenshots
+
+![](https://github.com/user-attachments/assets/c4fb53a5-5b73-4cc9-aaba-93a5436f9266)
+
+![](https://github.com/user-attachments/assets/d03d103a-4f88-4ee1-9250-63bde2e3d4f8)
