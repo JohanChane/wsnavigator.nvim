@@ -12,7 +12,8 @@ local wsn_hls = {
   wsn_light_red = { fg = '#e06c75' },
   wsn_light_green = { fg = '#98c379' },
   wsn_light_grey = { fg = '#D3D3D3' },
-  wsn_blue = { fg = '#2980b9' },
+  -- wsn_blue = { fg = '#2980b9' },
+  wsn_blue = { fg = '#61afef' },
   wsn_grey = { fg = '#808080' },
   wsn_pink = { fg = '#d33682' },
   wsn_dark_teal = { fg = '#006666' },
@@ -24,12 +25,12 @@ local default_entry_hls = {
   WsnKey = wsn_hls.wsn_light_red,              -- key
   WsnCurBufFilename = wsn_hls.wsn_light_green, -- filename of current buffer
   WsnInBlFilename = wsn_hls.wsn_light_grey,    -- filename of the buffer in listed buffers
-  WsnBlExJlFilename = wsn_hls.wsn_blue,        -- filename of buffer in listed buffers not in jumplist
+  WsnBlExJlFilename = wsn_hls.wsn_dark_teal,   -- filename of buffer in listed buffers not in jumplist
   WsnExBlFilename = wsn_hls.wsn_grey,          -- filename of buffer not in listed buffers
   WsnModified = wsn_hls.wsn_pink,              -- file modified
   WsnLineNum = wsn_hls.wsn_grey,               -- line number
   WsnFtIndent = wsn_hls.wsn_grey,              -- filetree indent
-  WsnFtDirPath = wsn_hls.wsn_dark_teal,        -- filetree dir path
+  WsnFtDirPath = wsn_hls.wsn_blue,             -- filetree dir path
   WsnFtProjNode = wsn_hls.wsn_amethyst,        -- filetree project node
 }
 
