@@ -182,26 +182,26 @@ function FileTree:new(_opts)
     }
 
     -- ## handle project node
-    local cur_idx = 0
-    local cur_path = is_root and '/' or ''
-    for _, n in ipairs(line_nodes) do
-      if not n.filename or #n.filename <= 0 then
-        goto continue
-      end
+    -- local cur_idx = 0
+    -- local cur_path = is_root and '/' or ''
+    -- for _, n in ipairs(line_nodes) do
+    --   if not n.filename or #n.filename <= 0 then
+    --     goto continue
+    --   end
 
-      if n.is_proj_node then
-        local proj_node_pos = {}
-        proj_node_pos.begin = cur_idx + 1
-        proj_node_pos.length = #n.filename
+    --   if n.is_proj_node then
+    --     local proj_node_pos = {}
+    --     proj_node_pos.begin = cur_idx + 1
+    --     proj_node_pos.length = #n.filename
 
-        line.show.proj_node_pos = proj_node_pos
-        break
-      end
-      cur_path = vim.fs.joinpath(cur_path, n.filename)
-      cur_idx = #cur_path
+    --     line.show.proj_node_pos = proj_node_pos
+    --     break
+    --   end
+    --   cur_path = vim.fs.joinpath(cur_path, n.filename)
+    --   cur_idx = #cur_path
 
-      ::continue::
-    end
+    --   ::continue::
+    -- end
 
     table.insert(lines, line)
   end

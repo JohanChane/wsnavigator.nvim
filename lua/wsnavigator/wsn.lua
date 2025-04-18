@@ -102,6 +102,14 @@ end
 
 local function open_wsn()
   local entries = wsn_entry.make_entries()
+
+  -- Note: Since v0.2.0 use buffer only.
+  -- if #entries > setup_opts.max_len_of_entries then
+  if #entries[wsn_entry.EntryType.JumpList] > setup_opts.max_len_of_buffers then
+    setup_opts.cb_for_too_many_buffers()
+    return
+  end
+
   create_wsn_win(entries)
 end
 

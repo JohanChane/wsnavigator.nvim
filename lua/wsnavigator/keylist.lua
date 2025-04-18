@@ -41,6 +41,8 @@ local function comb_weight(combo)
   return weight
 end
 
+-- n == 1: return the list of single-key. e.g {f, j, k, l, a, d, s}
+-- n == 2: return the list of two-key combinations. e.g. {ff, dd, ss, aa}
 local function make_keylist(n)
   local kw = key_weight
 

@@ -1,20 +1,23 @@
 local default_opts = {
   ui = {
     float = {
-      border = 'none',
-      float_hl = 'Normal',
-      border_hl = 'FloatBorder',
-      blend = 0,
-      height = 0.8,
-      width = 0.8,
-      x = 0.5,
-      y = 0.5
+      border = "single",          -- see ':h nvim_open_win'
+      float_hl = "Normal",        -- see ':h winhl'
+      border_hl = "Normal",
+      blend = 0,                  -- see ':h winblend'
+      height = 0.9,               -- Num from 0 - 1 for measurements
+      width = 0.9,
+      x = 0.5,                    -- X and Y Axis of Window
+      y = 0.4,
     },
   },
-  max_len_of_entries = 20,   -- max length of entries.
-  display_mode = 'filetree', -- filetree | list
+  max_len_of_entries = 20,    -- max length of entries.
+  max_len_of_buffers = 7,     -- If the number of buffers exceeds this threshold, automatically use another buffer switcher.
+  cb_for_too_many_buffers = function ()
+  end,                        -- callback function to execute when buffer limit exceed
+  display_mode = 'filetree',  -- filetree | list
   jumplist = {
-    buf_only = false         -- show buf_only
+    buf_only = true           -- show buf_only
   },
   filetree = {
     theme = nil, -- user theme

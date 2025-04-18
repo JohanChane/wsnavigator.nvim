@@ -4,8 +4,8 @@ local wsn_keylist = require('wsnavigator.keylist')
 local FileTree = require('wsnavigator.filetree').FileTree
 local wsn_filetree = FileTree:new({ theme = require('wsnavigator').get_ft_theme() })
 
-local key1_list
-local key2_list
+local key1_list   -- the list of single-key
+local key2_list   -- the list of two-key combinations
 
 -- Define color values
 local wsn_hls = {
@@ -57,6 +57,7 @@ local BufMode = {
   InJumpList = 4, -- 100. In jumplist
 }
 
+-- If `n <= (the size of key1_list)`, then use key1_list; otherwise, use key2_list.
 local function get_keylist(n)
   n = math.min(n, setup_opts.max_len_of_entries)
 
@@ -77,6 +78,7 @@ local function get_keylist(n)
   return key2_list
 end
 
+-- Fetch keys one by one from the keylist
 local function get_key(keylist)
   local key = keylist.list[keylist.idx]
   keylist.idx = keylist.idx + 1
@@ -165,7 +167,7 @@ local function make_wsn_buflist(jl_buflist, incl_buflist)
   return { buflist_in_bl, buflist_ex_jl, buflist_ex_bl }
 end
 
--- entry = {key(make it outside), bufnr, lnum, col, buf_mode}
+-- entry = {bufnr, lnum, col, buf_mode}
 local function make_jumplist_entries(jl_buflist, incl_buflist)
   local wsn_buflist = make_wsn_buflist(jl_buflist, incl_buflist)
   local dst_buflist = {}
@@ -220,6 +222,8 @@ local function make_jumplist_entries(jl_buflist, incl_buflist)
   return entries
 end
 
+-- entry = {key (shortcut to swith buf), bufnr, lnum, col, buf_mode}
+-- entries: {EntryType: entries}
 local function make_entries()
   local jl_buflist = get_buflist_from_jl()
   local buflist = get_incl_buflist()
@@ -243,7 +247,6 @@ local function make_entries()
 end
 
 -- make lines for jumplist entries
--- lines = {{field1, hl}, {field2, hl}, ...}
 local function make_lines_for_jl_entries(jl_entries)
   local lines = {}
   for _, entry in ipairs(jl_entries) do
@@ -299,10 +302,10 @@ local function make_lines_for_jl_entries(jl_entries)
 
     -- ### key
     table.insert(line, { key_str, key_hl })
-    table.insert(line, { ' ' })
+    -- table.insert(line, { ' ' })
 
     -- ### line number
-    table.insert(line, { lnum_str, lnum_hl })
+    -- table.insert(line, { lnum_str, lnum_hl })
 
     table.insert(lines, line)
   end
@@ -408,10 +411,10 @@ local function make_ft_for_jl_entries(jl_entries)
 
       -- ### key
       table.insert(line, { key_str, key_hl })
-      table.insert(line, { ' ' })
+      -- table.insert(line, { ' ' })
 
       -- ### line number
-      table.insert(line, { lnum_str, lnum_hl })
+      -- table.insert(line, { lnum_str, lnum_hl })
     end
 
     table.insert(lines, line)
@@ -420,13 +423,12 @@ local function make_ft_for_jl_entries(jl_entries)
   return lines
 end
 
+-- lines = {{field1, hl}, {field2, hl}, ...}
 local function make_lines_for_entries(entries)
   local lines = {}
   if setup_opts.display_mode == 'list' then
     lines = vim.fn.extend(lines, make_lines_for_jl_entries(entries[EntryType.JumpList]))
-  elseif setup_opts.display_mode == 'filetree' then
-    lines = vim.fn.extend(lines, make_ft_for_jl_entries(entries[EntryType.JumpList]))
-  else
+  else    -- filetree
     lines = vim.fn.extend(lines, make_ft_for_jl_entries(entries[EntryType.JumpList]))
   end
 
