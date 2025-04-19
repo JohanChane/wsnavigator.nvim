@@ -30,6 +30,7 @@ end
 
 local lazyloaded_modules = {
   open_wsn = { 'wsnavigator.wsn', 'open_wsn' },
+  toggle_wsn = { 'wsnavigator.wsn', 'toggle_wsn' },
   set_opts = { 'wsnavigator.wsn', 'set_opts' },
 }
 

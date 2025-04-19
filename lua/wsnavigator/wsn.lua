@@ -4,6 +4,8 @@ local wsn_window = Window:new(setup_opts.ui)
 local wsn_entry = require('wsnavigator.entry')
 local Flag = require('wsnavigator.utils').Flag
 
+local wsn_win = nil
+
 local function set_keymaps(buf_hdr, keymaps)
   for _, km in ipairs(keymaps) do
     if km.key and km.key ~= '' then
@@ -27,8 +29,20 @@ local function select_entry(entry)
   end
 end
 
-local function create_wsn_win(entries)
-  local win = wsn_window:create_float_win()
+local function remove_wsn_win()
+  Window.remove_win(wsn_win)
+  wsn_win =nil
+end
+
+local function create_wsn_win(entries, win_type)
+  win_type = win_type or setup_opts.ui.default
+
+  local win
+  if win_type == "split" then
+    win = wsn_window:create_split_win()
+  else
+    win = wsn_window:create_float_win()
+  end
 
   local lines = wsn_entry.make_lines_for_entries(entries)
 
@@ -67,7 +81,7 @@ local function create_wsn_win(entries)
     local keymap = {}
     keymap.key = entry.key
     keymap.cb = function()
-      Window.remove_win(win)
+      remove_wsn_win(win)
       select_entry(entry)
     end
     table.insert(keymaps, keymap)
@@ -77,16 +91,16 @@ local function create_wsn_win(entries)
   -- For quitting wsnavigator
   for _, key in ipairs(setup_opts.keymaps.quit) do
     vim.keymap.set('n', key, function()
-      Window.remove_win(win)
+      remove_wsn_win(win)
     end, { buffer = win.buf_hdr, noremap = true })
     vim.keymap.set('n', key, function()
-      Window.remove_win(win)
+      remove_wsn_win(win)
     end, { buffer = win.buf_hdr, noremap = true })
   end
 
   for _, key in ipairs(setup_opts.keymaps.switch_display_mode) do
     vim.keymap.set('n', key, function()
-      Window.remove_win(win)
+      remove_wsn_win(win)
       require('wsnavigator').switch_display_mode()
       require('wsnavigator').open_wsn()
     end, { buffer = win.buf_hdr, noremap = true })
@@ -94,10 +108,12 @@ local function create_wsn_win(entries)
 
   for _, key_cb in ipairs(setup_opts.keymaps.callbacks) do
     vim.keymap.set('n', key_cb.key, function()
-      Window.remove_win(win)
+      remove_wsn_win(win)
       key_cb.cb({buf_only = setup_opts.jumplist.buf_only})
     end, { buffer = win.buf_hdr, noremap = true })
   end
+
+  return win
 end
 
 local function open_wsn()
@@ -110,7 +126,15 @@ local function open_wsn()
     return
   end
 
-  create_wsn_win(entries)
+  wsn_win = create_wsn_win(entries)
+end
+
+local function toggle_wsn()
+  if wsn_win == nil then
+    open_wsn()
+  else
+    remove_wsn_win()
+  end
 end
 
 local function set_opts(opts)
@@ -120,5 +144,6 @@ end
 
 return {
   open_wsn = open_wsn,
+  toggle_wsn = toggle_wsn,
   set_opts = set_opts,
 }
