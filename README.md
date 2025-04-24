@@ -46,8 +46,6 @@ See [ref](./docs/config.md)
 
 ## Screenshots
 
-![](https://github.com/user-attachments/assets/2245fc41-75bd-4811-832c-895fd4766ead)
+![](https://github.com/user-attachments/assets/a09ebc78-2c6c-4ace-b03a-3ff5199e40d6)
 
-![](https://github.com/user-attachments/assets/15c6f7cc-a235-47f1-962f-5eb38466d2cd)
-
-
+![](https://github.com/user-attachments/assets/6471b1e3-45fa-47dc-899c-73ac39ed2fd6)
