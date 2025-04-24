@@ -25,7 +25,7 @@ local default_entry_hls = {
   WsnKey = wsn_hls.wsn_light_red,              -- key
   WsnCurBufFilename = wsn_hls.wsn_light_green, -- filename of current buffer
   WsnInBlFilename = wsn_hls.wsn_light_grey,    -- filename of the buffer in listed buffers
-  WsnBlExJlFilename = wsn_hls.wsn_dark_teal,   -- filename of buffer in listed buffers not in jumplist
+  WsnBlExJlFilename = wsn_hls.wsn_light_grey,   -- filename of buffer in listed buffers not in jumplist
   WsnExBlFilename = wsn_hls.wsn_grey,          -- filename of buffer not in listed buffers
   WsnModified = wsn_hls.wsn_pink,              -- file modified
   WsnLineNum = wsn_hls.wsn_grey,               -- line number
@@ -223,14 +223,51 @@ local function make_jumplist_entries(jl_buflist, incl_buflist)
   return entries
 end
 
+-- entry = {bufnr, buf_mode}
+local function make_buflist_entries(incl_buflist)
+  local pathlist = {}
+  for _, bufnr in ipairs(incl_buflist.list) do
+    local path_entry = {}
+
+    local path = vim.api.nvim_buf_get_name(bufnr)
+    path = path:gsub("\\", "/")
+    path_entry.path = path
+    path_entry.bufnr = bufnr
+
+    table.insert(pathlist, path_entry)
+  end
+
+  table.sort(pathlist, function (a, b)
+    return a.path < b.path
+  end)
+
+  local entries = {}
+  for _, item in ipairs(pathlist) do
+    local entry = {}
+    entry.bufnr = item.bufnr
+
+    local buf_mode = 0
+    buf_mode = Flag.add_flag(buf_mode, BufMode.InBufList)
+    if item.bufnr == vim.api.nvim_get_current_buf() then
+      buf_mode = Flag.add_flag(buf_mode, BufMode.CurBuf)
+    end
+    entry.buf_mode = buf_mode
+
+    table.insert(entries, entry)
+  end
+
+  return entries
+end
+
 -- entry = {key (shortcut to swith buf), bufnr, lnum, col, buf_mode}
 -- entries: {EntryType: entries}
 local function make_entries()
-  local jl_buflist = get_buflist_from_jl()
+  -- local jl_buflist = get_buflist_from_jl()
   local buflist = get_incl_buflist()
 
   local entries = {}
-  entries[EntryType.JumpList] = make_jumplist_entries(jl_buflist, buflist)
+  -- entries[EntryType.JumpList] = make_jumplist_entries(jl_buflist, buflist)
+  entries[EntryType.JumpList] = make_buflist_entries(buflist)
 
   -- ## set key
   local entry_num = 0
