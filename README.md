@@ -2,17 +2,11 @@
 
 ## Why I Built wsnavigator.nvim
 
-I've been using fuzzy finder plugins like `fzf-lua.nvim` and `telescope.nvim` for buffer switching. While these tools are powerful,
-they feel like overkill when I only have 5-10 files open. The typical workflow of "open → filter → select" becomes unnecessarily cumbersome for a small number of buffers. 
-
-Since working with few buffers is my common scenario and buffer switching is such a frequent operation, I wanted a solution that
-simplifies this to just "open → select". After searching for quick-selection plugins like Harpoon and not finding anything that fit my needs,
-I decided to build this plugin myself.
+I created it to optimize the buffer-switching experience when working with a small number of buffers.
 
 ## Features
 
-- Intuitive selection using just the `fdsajkl` keys
-- Buffers listed in jumplist order
+- Only uses highly accessible keys: `f d s a j k l`
 - `filetree` display mode
 
 ## Installation & Configuration
