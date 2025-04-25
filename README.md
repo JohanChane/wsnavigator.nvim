@@ -9,7 +9,7 @@ Since working with few buffers is my common scenario and buffer switching is suc
 simplifies this to just "open → select". After searching for quick-selection plugins like Harpoon and not finding anything that fit my needs,
 I decided to build this plugin myself.
 
-## Key Features
+## Features
 
 - Intuitive selection using just the `fdsajkl` keys
 - Buffers listed in jumplist order
