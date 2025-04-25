@@ -187,12 +187,7 @@ local function make_ft_for_entries(entries)
       local entry = entry_map[ft_line.bufnr]
 
       -- ## filename field
-      local filename
-      if ft_line.show.path ~= '' then
-        filename = ft_line.show.path
-      else
-        filename = '[No Name]'
-      end
+      local filename = ft_line.show.path
 
       local filename_hl = ''
       if not Flag.has_flag(entry.buf_mode, BufMode.InBufList) then

@@ -113,10 +113,15 @@ function FileTree:new(_opts)
         path = example_paths[bufnr]
       else
         path = vim.api.nvim_buf_get_name(bufnr)
+        if path == '' then    -- new buffer
+          path = vim.fs.joinpath(vim.fn.getcwd(), "[No Name]")
+        end
         path = path:gsub("\\", "/")
       end
 
-      local parts = vim.split(path, "/")      -- `/home/user` => {"", "home", "user"}; `./foo/bar` => {".", "foo", "bar"}
+      local parts = vim.split(path, "/")      -- `/home/user` => {"", "home", "user"};
+                                              -- `./foo/bar` => {".", "foo", "bar"}; 
+                                              -- `""` => {""}
       
       local filename = table.remove(parts)
       local dir_node = _find_or_create_dir(root, parts) -- now parts is dirname
