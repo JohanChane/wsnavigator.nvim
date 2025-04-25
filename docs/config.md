@@ -23,7 +23,7 @@
           y = 0.4,
         },
       },
-      max_len_of_buffers = 7,                -- If the number of buffers exceeds this threshold, automatically call `cb_for_too_many_buffers`
+      max_len_of_buffers = 7,                   -- If the number of buffers exceeds this threshold, automatically call `cb_for_too_many_buffers`
 	    cb_for_too_many_buffers = function() end, -- callback function to execute when buffer limit exceed
       filetree = {
         --theme = { -- user your theme
@@ -37,7 +37,6 @@
       },
       --keymaps = {       -- keymaps for wsnavigator buffer. `:h :map`
       --  quit = { 'q', '<Esc>' },
-      --  switch_display_mode = { 'ts' }
       --},
       theme = {
         --entry_hls = {     -- Ref `default_entry_hls`

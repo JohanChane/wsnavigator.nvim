@@ -20,7 +20,6 @@ local default_opts = {
 	max_len_of_entries = 20,               -- max length of entries.
 	max_len_of_buffers = 7,                -- If the number of buffers exceeds this threshold, automatically call `cb_for_too_many_buffers`
 	cb_for_too_many_buffers = function() end, -- callback function to execute when buffer limit exceed
-	display_mode = "filetree",             -- filetree | list
 	jumplist = {
 		buf_only = true,                   -- show buf_only
 	},
@@ -30,7 +29,6 @@ local default_opts = {
 	},
 	keymaps = { -- keymaps for wsnavigator buffer. `:h :map`
 		quit = { "q", "<Esc>" },
-		switch_display_mode = { "ts" },
 		callbacks = {},
 	},
 	theme = {

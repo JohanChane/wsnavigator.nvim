@@ -77,7 +77,7 @@ local function create_wsn_win(entries, win_type)
 
   -- ## set buffer keymaps
   local keymaps = {}
-  for _, entry in ipairs(entries[wsn_entry.EntryType.JumpList]) do
+  for _, entry in ipairs(entries) do
     local keymap = {}
     keymap.key = entry.key
     keymap.cb = function()
@@ -98,14 +98,6 @@ local function create_wsn_win(entries, win_type)
     end, { buffer = win.buf_hdr, noremap = true })
   end
 
-  for _, key in ipairs(setup_opts.keymaps.switch_display_mode) do
-    vim.keymap.set('n', key, function()
-      remove_wsn_win(win)
-      require('wsnavigator').switch_display_mode()
-      require('wsnavigator').open_wsn()
-    end, { buffer = win.buf_hdr, noremap = true })
-  end
-
   for _, key_cb in ipairs(setup_opts.keymaps.callbacks) do
     vim.keymap.set('n', key_cb.key, function()
       remove_wsn_win(win)
@@ -119,9 +111,7 @@ end
 local function open_wsn()
   local entries = wsn_entry.make_entries()
 
-  -- Note: Since v0.2.0 use buffer only.
-  -- if #entries > setup_opts.max_len_of_entries then
-  if #entries[wsn_entry.EntryType.JumpList] > setup_opts.max_len_of_buffers then
+  if #entries > setup_opts.max_len_of_buffers then
     setup_opts.cb_for_too_many_buffers()
     return
   end
@@ -138,7 +128,6 @@ local function toggle_wsn()
 end
 
 local function set_opts(opts)
-  --local setup_opts = require('wsnavigator.config').setup_opts
   require('wsnavigator.utils').tbl_deep_extend_inplace(setup_opts, opts)
 end
 

@@ -4,7 +4,7 @@ local key_weight = {
   j = 2,
   k = 3,
   l = 4,
-  a = 4,
+  a = 5,
   d = 6,
   s = 7,
 }

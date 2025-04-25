@@ -5,16 +5,6 @@ function M.setup(opts)
   config.setup_opts = vim.tbl_deep_extend('force', config.default_opts, opts)
 end
 
-function M.switch_display_mode()
-  local setup_opts = require('wsnavigator.config').setup_opts
-
-  local display_modes = { 'filetree', 'list' }
-
-  local next_idx = (vim.fn.index(display_modes, setup_opts.display_mode) + 1) % #display_modes + 1
-  setup_opts.display_mode = display_modes[next_idx]
-  vim.api.nvim_echo({ { string.format('display_mode: %s', setup_opts.display_mode) } }, false, {})
-end
-
 -- get filetree theme
 function M.get_ft_theme()
   local setup_opts = require('wsnavigator.config').setup_opts
