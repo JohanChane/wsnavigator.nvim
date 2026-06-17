@@ -6,7 +6,7 @@ I created it to optimize the buffer-switching experience when working with a sma
 
 ## Features
 
-- Only uses highly accessible keys: `f d s a j k l`
+- Only uses highly accessible keys: `f d s a j k l` (split: `ctrl + v/s`)
 - `filetree` display mode
 
 ## Installation & Configuration
