@@ -116,12 +116,10 @@ local function create_wsn_win(entries, win_type)
 
   vim.keymap.set('n', '<C-v>', function()
     split_mode = "vsplit"
-    vim.api.nvim_echo({{"wsnavigator: vertical-split mode, press buffer key"}}, false, {})
   end, { buffer = win.buf_hdr, noremap = true })
 
   vim.keymap.set('n', '<C-s>', function()
     split_mode = "split"
-    vim.api.nvim_echo({{"wsnavigator: horizontal-split mode, press buffer key"}}, false, {})
   end, { buffer = win.buf_hdr, noremap = true })
 
   return win
