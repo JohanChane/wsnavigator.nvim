@@ -5,6 +5,7 @@ local wsn_entry = require('wsnavigator.entry')
 local Flag = require('wsnavigator.utils').Flag
 
 local wsn_win = nil
+local split_mode = nil
 
 local function set_keymaps(buf_hdr, keymaps)
   for _, km in ipairs(keymaps) do
@@ -17,7 +18,13 @@ local function set_keymaps(buf_hdr, keymaps)
   end
 end
 
-local function select_entry(entry)
+local function select_entry(entry, split_direction)
+  if split_direction == "vsplit" then
+    vim.cmd.vsplit()
+  elseif split_direction == "split" then
+    vim.cmd.split()
+  end
+
   if Flag.has_flag(entry.buf_mode, wsn_entry.BufMode.CurBuf) then
   elseif Flag.has_flag(entry.buf_mode, wsn_entry.BufMode.InBufList) then
     vim.api.nvim_set_current_buf(entry.bufnr)
@@ -30,8 +37,9 @@ local function select_entry(entry)
 end
 
 local function remove_wsn_win()
+  split_mode = nil
   Window.remove_win(wsn_win)
-  wsn_win =nil
+  wsn_win = nil
 end
 
 local function create_wsn_win(entries, win_type)
@@ -81,8 +89,9 @@ local function create_wsn_win(entries, win_type)
     local keymap = {}
     keymap.key = entry.key
     keymap.cb = function()
+      local mode = split_mode
       remove_wsn_win(win)
-      select_entry(entry)
+      select_entry(entry, mode)
     end
     table.insert(keymaps, keymap)
   end
@@ -104,6 +113,14 @@ local function create_wsn_win(entries, win_type)
       key_cb.cb({buf_only = setup_opts.jumplist.buf_only})
     end, { buffer = win.buf_hdr, noremap = true })
   end
+
+  vim.keymap.set('n', '<C-v>', function()
+    split_mode = "vsplit"
+  end, { buffer = win.buf_hdr, noremap = true })
+
+  vim.keymap.set('n', '<C-s>', function()
+    split_mode = "split"
+  end, { buffer = win.buf_hdr, noremap = true })
 
   return win
 end
